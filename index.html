@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Cadeau Extraordinaire</title>
+    <title>💖 Astrid - Univers Immersif 💖</title>
     <style>
         * {
             margin: 0;
@@ -16,6 +16,11 @@
             background: #000;
             font-family: 'Impact', 'Arial Black', sans-serif;
             touch-action: none;
+            cursor: grab;
+        }
+
+        body.grabbing {
+            cursor: grabbing;
         }
 
         #canvas3d {
@@ -46,6 +51,7 @@
             z-index: 10;
             perspective: 1000px;
             width: 90%;
+            pointer-events: none;
         }
 
         .name {
@@ -61,8 +67,7 @@
             -webkit-text-fill-color: transparent;
             animation:
                     megaGradient 4s ease infinite,
-                    explosive 6s ease-in-out infinite,
-                    rotate3d 10s linear infinite;
+                    explosive 6s ease-in-out infinite;
             filter:
                     drop-shadow(0 0 40px rgba(255, 0, 128, 0.9))
                     drop-shadow(0 0 60px rgba(157, 0, 255, 0.7))
@@ -90,11 +95,6 @@
             75% {
                 transform: scale(1.1) translateY(-20px) rotateX(10deg);
             }
-        }
-
-        @keyframes rotate3d {
-            0% { transform: rotateY(0deg) rotateZ(0deg); }
-            100% { transform: rotateY(360deg) rotateZ(360deg); }
         }
 
         .particles-canvas {
@@ -185,6 +185,7 @@
             border-radius: 50%;
             animation: expandRing 3s ease-out infinite;
             z-index: 4;
+            pointer-events: none;
         }
 
         @keyframes expandRing {
@@ -198,9 +199,111 @@
             }
         }
 
+        .controls {
+            position: fixed;
+            bottom: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 20;
+            background: rgba(0,0,0,0.7);
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .control-btn {
+            padding: 0.8rem 1.5rem;
+            background: linear-gradient(135deg, #ff0080, #9d00ff);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: clamp(0.8rem, 2vw, 1rem);
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(255, 0, 128, 0.5);
+        }
+
+        .control-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(255, 0, 128, 0.8);
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .zoom-indicator {
+            position: fixed;
+            top: 5%;
+            right: 5%;
+            color: white;
+            font-size: clamp(0.8rem, 2vw, 1rem);
+            background: rgba(0,0,0,0.7);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            z-index: 20;
+            font-family: 'Courier New', monospace;
+            border: 2px solid rgba(255,255,255,0.2);
+            text-shadow: 0 0 10px rgba(255,0,128,0.8);
+        }
+
+        .instructions {
+            position: fixed;
+            top: 5%;
+            left: 5%;
+            color: white;
+            font-size: clamp(0.7rem, 1.8vw, 0.9rem);
+            background: rgba(0,0,0,0.7);
+            padding: 1rem;
+            border-radius: 15px;
+            z-index: 20;
+            font-family: 'Arial', sans-serif;
+            border: 2px solid rgba(255,255,255,0.2);
+            max-width: 250px;
+            line-height: 1.5;
+        }
+
+        .explosion-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 15;
+            animation: explode 1s ease-out forwards;
+        }
+
+        @keyframes explode {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+
         @media (max-width: 768px) {
             .name {
                 font-size: clamp(40px, 12vw, 80px);
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 0.5rem;
+                padding: 0.8rem 1.5rem;
+            }
+
+            .control-btn {
+                padding: 0.6rem 1rem;
+            }
+
+            .instructions {
+                font-size: 0.7rem;
+                padding: 0.8rem;
+                max-width: 180px;
             }
         }
     </style>
@@ -216,12 +319,32 @@
 <div class="ring" style="animation-delay: 2s;"></div>
 
 <div class="name-container">
-    <div class="name" id="nameText">Yasmine</div>
-    <div class="subtitle">★ La belle ★</div>
+    <div class="name" id="nameText">ASTRID</div>
+    <div class="subtitle">★ Mon Univers ★</div>
+</div>
+
+<div class="instructions">
+    🖱️ Glisser pour tourner<br>
+    🔍 Molette/Pincer pour zoomer<br>
+    👆 Cliquer pour explosions<br>
+    🎯 Boutons pour vues rapides
+</div>
+
+<div class="zoom-indicator">
+    ZOOM: <span id="zoomLevel">100%</span>
+</div>
+
+<div class="controls">
+    <button class="control-btn" id="resetBtn">🔄 Reset</button>
+    <button class="control-btn" id="closeBtn">🔍 Rapprocher</button>
+    <button class="control-btn" id="farBtn">🌌 Éloigner</button>
+    <button class="control-btn" id="topBtn">⬆️ Vue Haut</button>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
     // Étoiles scintillantes
     const starsContainer = document.getElementById('starsContainer');
     for (let i = 0; i < 100; i++) {
@@ -234,7 +357,7 @@
         starsContainer.appendChild(star);
     }
 
-    // Canvas pour particules avancées
+    // Canvas pour particules
     const particlesCanvas = document.getElementById('particlesCanvas');
     const pCtx = particlesCanvas.getContext('2d');
     particlesCanvas.width = window.innerWidth;
@@ -286,45 +409,52 @@
     }
     animateParticles();
 
-    // Three.js - Scène 3D ultra-avancée
+    // Three.js - Configuration
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({
         canvas: document.getElementById('canvas3d'),
         alpha: true,
-        antialias: true
+        antialias: !isMobile
     });
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
     camera.position.z = 30;
 
-    // Géométries complexes multiples
+    // Géométries complexes avec possibilité de zoom
     const geometries = [
         new THREE.IcosahedronGeometry(8, 1),
         new THREE.TorusGeometry(8, 3, 16, 100),
-        new THREE.OctahedronGeometry(10, 0)
+        new THREE.OctahedronGeometry(10, 0),
+        new THREE.TetrahedronGeometry(7, 0),
+        new THREE.DodecahedronGeometry(6, 0)
     ];
 
     const mainMeshes = [];
     geometries.forEach((geom, i) => {
+        const colors = [0xff0080, 0x40e0d0, 0x9d00ff, 0xff8c00, 0x00ff00];
         const mat = new THREE.MeshPhongMaterial({
-            color: [0xff0080, 0x40e0d0, 0x9d00ff][i],
+            color: colors[i],
             wireframe: true,
             transparent: true,
             opacity: 0.4,
-            emissive: [0xff0080, 0x40e0d0, 0x9d00ff][i],
+            emissive: colors[i],
             emissiveIntensity: 0.5
         });
         const mesh = new THREE.Mesh(geom, mat);
-        mesh.position.z = i * 5 - 10;
+        const angle = (i / geometries.length) * Math.PI * 2;
+        mesh.position.x = Math.cos(angle) * 15;
+        mesh.position.y = Math.sin(angle) * 15;
+        mesh.position.z = -10 - i * 3;
+        mesh.userData = { originalPosition: mesh.position.clone() };
         mainMeshes.push(mesh);
         scene.add(mesh);
     });
 
     // Nuage de points lumineux
     const pointsGeometry = new THREE.BufferGeometry();
-    const pointsCount = 3000;
+    const pointsCount = isMobile ? 2000 : 3000;
     const positions = new Float32Array(pointsCount * 3);
     const colors = new Float32Array(pointsCount * 3);
 
@@ -354,7 +484,7 @@
     const pointsCloud = new THREE.Points(pointsGeometry, pointsMaterial);
     scene.add(pointsCloud);
 
-    // Lumières dynamiques multiples
+    // Lumières dynamiques
     const lights = [];
     const lightColors = [0xff0080, 0x40e0d0, 0x9d00ff, 0xff8c00, 0x00ff00];
     for (let i = 0; i < 5; i++) {
@@ -366,31 +496,152 @@
     const ambientLight = new THREE.AmbientLight(0x222222);
     scene.add(ambientLight);
 
-    // Variables pour l'animation
+    // Variables de contrôle
     let time = 0;
     let mouseX = 0;
     let mouseY = 0;
     let targetX = 0;
     let targetY = 0;
+    let targetZoom = 30;
+    let currentZoom = 30;
+    let isDragging = false;
+    let previousMouse = { x: 0, y: 0 };
+    let rotationX = 0;
+    let rotationY = 0;
+
+    // Gestion du drag
+    const canvas = document.getElementById('canvas3d');
+
+    canvas.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        document.body.classList.add('grabbing');
+        previousMouse = { x: e.clientX, y: e.clientY };
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            const deltaX = e.clientX - previousMouse.x;
+            const deltaY = e.clientY - previousMouse.y;
+            rotationY += deltaX * 0.01;
+            rotationX += deltaY * 0.01;
+            previousMouse = { x: e.clientX, y: e.clientY };
+        } else {
+            mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+            mouseY = (e.clientY / window.innerHeight) * 2 - 1;
+        }
+    });
+
+    canvas.addEventListener('mouseup', () => {
+        isDragging = false;
+        document.body.classList.remove('grabbing');
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+        isDragging = false;
+        document.body.classList.remove('grabbing');
+    });
+
+    // Touch events
+    let touchDistance = 0;
+    canvas.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+            isDragging = true;
+            previousMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        } else if (e.touches.length === 2) {
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            touchDistance = Math.sqrt(dx * dx + dy * dy);
+        }
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (e.touches.length === 1 && isDragging) {
+            const deltaX = e.touches[0].clientX - previousMouse.x;
+            const deltaY = e.touches[0].clientY - previousMouse.y;
+            rotationY += deltaX * 0.01;
+            rotationX += deltaY * 0.01;
+            previousMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        } else if (e.touches.length === 2) {
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const delta = distance - touchDistance;
+            targetZoom -= delta * 0.05;
+            targetZoom = Math.max(5, Math.min(100, targetZoom));
+            touchDistance = distance;
+        }
+    });
+
+    canvas.addEventListener('touchend', () => {
+        isDragging = false;
+    });
+
+    // Zoom avec molette
+    canvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        targetZoom += e.deltaY * 0.05;
+        targetZoom = Math.max(5, Math.min(100, targetZoom));
+    }, { passive: false });
+
+    // Boutons de contrôle
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        targetZoom = 30;
+        rotationX = 0;
+        rotationY = 0;
+        camera.position.set(0, 0, 30);
+    });
+
+    document.getElementById('closeBtn').addEventListener('click', () => {
+        targetZoom = 10;
+    });
+
+    document.getElementById('farBtn').addEventListener('click', () => {
+        targetZoom = 60;
+    });
+
+    document.getElementById('topBtn').addEventListener('click', () => {
+        rotationX = -Math.PI / 4;
+        rotationY = 0;
+    });
+
+    // Mise à jour du zoom indicator
+    function updateZoomIndicator() {
+        const zoomPercent = Math.round((30 / currentZoom) * 100);
+        document.getElementById('zoomLevel').textContent = zoomPercent + '%';
+    }
 
     // Animation principale
     function animate() {
         requestAnimationFrame(animate);
         time += 0.01;
 
-        // Mouvement fluide de la caméra
-        targetX += (mouseX - targetX) * 0.05;
-        targetY += (mouseY - targetY) * 0.05;
-        camera.position.x = targetX * 5;
-        camera.position.y = -targetY * 5;
-        camera.lookAt(scene.position);
+        // Zoom fluide
+        currentZoom += (targetZoom - currentZoom) * 0.1;
 
-        // Animation des formes principales
+        // Position de la caméra avec rotation
+        const radius = currentZoom;
+        camera.position.x = Math.sin(rotationY) * Math.cos(rotationX) * radius;
+        camera.position.y = Math.sin(rotationX) * radius;
+        camera.position.z = Math.cos(rotationY) * Math.cos(rotationX) * radius;
+
+        // Mouvement subtil si pas de drag
+        if (!isDragging) {
+            targetX += (mouseX - targetX) * 0.05;
+            targetY += (mouseY - targetY) * 0.05;
+            camera.position.x += targetX * 2;
+            camera.position.y += -targetY * 2;
+        }
+
+        camera.lookAt(scene.position);
+        updateZoomIndicator();
+
+        // Animation des formes
         mainMeshes.forEach((mesh, i) => {
             mesh.rotation.x = time * (0.5 + i * 0.2);
             mesh.rotation.y = time * (0.3 + i * 0.1);
             mesh.rotation.z = time * 0.1;
-            mesh.position.y = Math.sin(time + i) * 5;
+            mesh.position.y = mesh.userData.originalPosition.y + Math.sin(time + i) * 5;
             mesh.scale.set(
                 1 + Math.sin(time * 2 + i) * 0.3,
                 1 + Math.cos(time * 2 + i) * 0.3,
@@ -398,7 +649,7 @@
             );
         });
 
-        // Animation du nuage de points
+        // Animation du nuage
         pointsCloud.rotation.y = time * 0.1;
         pointsCloud.rotation.x = time * 0.05;
 
@@ -415,31 +666,29 @@
     }
     animate();
 
-    // Gestion des événements tactiles et souris
-    function handleMove(e) {
-        if (e.touches) {
-            mouseX = (e.touches[0].clientX / window.innerWidth) * 2 - 1;
-            mouseY = (e.touches[0].clientY / window.innerHeight) * 2 - 1;
-        } else {
-            mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-            mouseY = (e.clientY / window.innerHeight) * 2 - 1;
-        }
-    }
-
-    document.addEventListener('mousemove', handleMove);
-    document.addEventListener('touchmove', handleMove, { passive: true });
-
-    // Responsive
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        particlesCanvas.width = window.innerWidth;
-        particlesCanvas.height = window.innerHeight;
-    });
-
-    // Effet de clic/tap explosif
+    // Effet explosion au clic
     function createExplosion(x, y) {
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'explosion-particle';
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            particle.style.width = (Math.random() * 8 + 4) + 'px';
+            particle.style.height = particle.style.width;
+            particle.style.background = `hsl(${Math.random() * 360}, 100%, 70%)`;
+            particle.style.borderRadius = '50%';
+            particle.style.boxShadow = `0 0 10px ${particle.style.background}`;
+
+            const angle = Math.random() * Math.PI * 2;
+            const distance = Math.random() * 200 + 100;
+            particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+            particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+
+            document.body.appendChild(particle);
+            setTimeout(() => particle.remove(), 1000);
+        }
+
+        // Particules canvas
         for (let i = 0; i < 20; i++) {
             const p = new Particle();
             p.x = x;
@@ -451,12 +700,25 @@
         }
     }
 
-    document.addEventListener('click', (e) => createExplosion(e.clientX, e.clientY));
-    document.addEventListener('touchstart', (e) => {
-        if (e.touches[0]) {
-            createExplosion(e.touches[0].clientX, e.touches[0].clientY);
+    canvas.addEventListener('click', (e) => createExplosion(e.clientX, e.clientY));
+    canvas.addEventListener('touchstart', (e) => {
+        if (e.touches[0] && e.touches.length === 1) {
+            setTimeout(() => {
+                if (!isDragging) {
+                    createExplosion(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            }, 100);
         }
-    }, { passive: true });
+    });
+
+    // Responsive
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        particlesCanvas.width = window.innerWidth;
+        particlesCanvas.height = window.innerHeight;
+    });
 </script>
 </body>
 </html>
